@@ -3,44 +3,91 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Adressevælger test</title>
+    <title>Adressevælger</title>
     <link rel="stylesheet" href="adressevaelger.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main>
-      <h1>Adressevælger test</h1>
+    <div class="page">
+      <main class="card">
+        <h1>Adressevælger</h1>
 
-      <fieldset id="mode-select">
-        <legend>Vælg opslagstype</legend>
-        <label>
-          <input type="radio" name="mode" value="adresse" checked />
-          Adresse opslag
-        </label>
-        <label>
-          <input type="radio" name="mode" value="husnummer" />
-          Husnummer opslag
-        </label>
-      </fieldset>
+        <fieldset id="mode-select">
+          <legend>Vælg opslagstype</legend>
 
-      <div class="field">
-        <label for="adressevaelger-input">Søg</label>
-        <div id="search-container"></div>
-      </div>
+          <label class="mode-option">
+            <input type="radio" name="mode" value="husnummer" />
+            <span class="mode-option-body">
+              <span class="mode-option-title">🏠 House Number (Adgangsadresse)</span>
+              <span class="mode-option-desc">Searches for a physical building/entrance.</span>
+              <span class="mode-option-examples"
+                >Examples:<br />Ankjær 205, 8300 Odder<br />Taastrup Have 30,
+                2630 Taastrup</span
+              >
+            </span>
+          </label>
 
-      <section id="result-section" hidden>
-        <h2>Valgt</h2>
-        <p class="selected-id-line">ID: <code id="selected-id"></code></p>
-        <pre id="selected-json" class="json-block"></pre>
-      </section>
+          <label class="mode-option">
+            <input type="radio" name="mode" value="adresse" checked />
+            <span class="mode-option-body">
+              <span class="mode-option-title">🏢 Address (Adresse)</span>
+              <span class="mode-option-desc"
+                >Searches for a specific address, including floor and
+                door.</span
+              >
+              <span class="mode-option-examples"
+                >Examples:<br />Taastrup Have 30, 1. mf., 2630
+                Taastrup<br />Taastrup Have 30, st. tv., 2630 Taastrup</span
+              >
+            </span>
+          </label>
+        </fieldset>
 
-      <section id="extended-section" hidden>
-        <h2>Udvidet opslag</h2>
-        <p id="loading" class="status status-loading" hidden>Henter data…</p>
-        <p id="error" class="status status-error" hidden></p>
-        <pre id="extended-json" class="json-block"></pre>
-      </section>
-    </main>
+        <div class="info-box">
+          <div class="info-box-col">
+            <h3>House Number (Adgangsadresse)</h3>
+            <ul>
+              <li>Returns one physical entrance/building.</li>
+              <li>Can contain multiple addresses.</li>
+            </ul>
+          </div>
+          <div class="info-box-col">
+            <h3>Address (Adresse)</h3>
+            <ul>
+              <li>Returns one specific address.</li>
+              <li>Includes floor and door when applicable.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="adressevaelger-input">Søg</label>
+          <div id="search-container"></div>
+        </div>
+
+        <section id="result-section" hidden>
+          <h2>Valgt <span id="result-badge" class="mode-badge"></span></h2>
+          <div class="field selected-id-row">
+            <label for="selected-id">ID</label>
+            <div class="input-with-button">
+              <input type="text" id="selected-id" readonly />
+              <button type="button" id="copy-id-btn">Kopiér</button>
+            </div>
+          </div>
+          <p id="multi-address-note" class="status status-info" hidden></p>
+          <pre id="selected-json" class="json-block"></pre>
+        </section>
+
+        <section id="extended-section" hidden>
+          <h2>Udvidet opslag</h2>
+          <p id="loading" class="status status-loading" hidden>
+            <span class="spinner" aria-hidden="true"></span>Henter data…
+          </p>
+          <p id="error" class="status status-error" hidden></p>
+          <pre id="extended-json" class="json-block"></pre>
+        </section>
+      </main>
+    </div>
 
     <script src="adressevaelger.iife.js"></script>
     <script src="app.js"></script>
