@@ -242,8 +242,11 @@ fieldset#mode-select legend {
   padding: 0.5rem 0.75rem;
   border-radius: 0.4rem;
   font-size: 0.9rem;
-  display: flex;
   align-items: center;
+}
+
+.status:not([hidden]) {
+  display: flex;
 }
 
 .status-loading {
