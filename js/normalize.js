@@ -191,12 +191,40 @@ export function normalizeDawaSearchItem(item, kind) {
 }
 
 export function normalizeDawaDetail(obj) {
-  const road = pick(obj, ["vejstykke.navn", "adgangsadresse.vejstykke.navn"]);
-  const houseNo = pick(obj, ["husnr", "adgangsadresse.husnr"]);
-  const floor = pick(obj, ["etage"]);
-  const door = pick(obj, ["dør", "dor"]);
-  const postcode = pick(obj, ["postnummer.nr", "adgangsadresse.postnummer.nr"]);
-  const city = pick(obj, ["postnummer.navn", "adgangsadresse.postnummer.navn"]);
+  // Extract from actual DAWA lookup response structure (authoritative)
+  // Most fields are nested under adgangsadresse; top-level fields: etage, dør, id, adressebetegnelse
+  const road = pick(obj, [
+    "adgangsadresse.vejstykke.navn",              // Primary path in actual API response
+    "vejstykke.navn",                             // Fallback path
+  ]);
+
+  const houseNo = pick(obj, [
+    "adgangsadresse.husnr",                       // Primary path in actual API response
+    "husnr",                                      // Fallback path
+  ]);
+
+  const floor = pick(obj, [
+    "etage",                                      // Top-level field (primary in actual API response)
+    "adgangsadresse.etage",                       // Fallback nested path
+  ]);
+
+  const door = pick(obj, [
+    "dør",                                        // Top-level field (primary in actual API response)
+    "dor",                                        // Alternate top-level field
+    "adgangsadresse.dør",                         // Fallback nested path
+    "adgangsadresse.dor",                         // Alternate fallback nested path
+  ]);
+
+  const postcode = pick(obj, [
+    "adgangsadresse.postnummer.nr",               // Primary path in actual API response
+    "postnummer.nr",                              // Fallback path
+  ]);
+
+  const city = pick(obj, [
+    "adgangsadresse.postnummer.navn",             // Primary path in actual API response
+    "postnummer.navn",                            // Fallback path
+  ]);
+
   const fallbackText = pick(obj, ["adressebetegnelse", "betegnelse"]);
   const text = fallbackText || composeText({ road, houseNo, floor, door, postcode, city });
 
@@ -210,6 +238,6 @@ export function normalizeDawaDetail(obj) {
     door,
     postcode,
     city,
-    confidence: "parsed",
+    confidence: road || postcode ? "lookup" : "unknown",
   };
 }
