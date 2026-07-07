@@ -28,7 +28,6 @@ const columnEls = {
   adressevaelger: {
     meta: document.getElementById("compare-av-meta"),
     list: document.getElementById("compare-av-list"),
-    fields: document.getElementById("compare-av-fields"),
     json: document.getElementById("compare-av-json"),
     copyJson: document.getElementById("compare-av-copy-json"),
     copyUrl: document.getElementById("compare-av-copy-url"),
@@ -36,7 +35,6 @@ const columnEls = {
   dawa: {
     meta: document.getElementById("compare-dawa-meta"),
     list: document.getElementById("compare-dawa-list"),
-    fields: document.getElementById("compare-dawa-fields"),
     json: document.getElementById("compare-dawa-json"),
     copyJson: document.getElementById("compare-dawa-copy-json"),
     copyUrl: document.getElementById("compare-dawa-copy-url"),
@@ -136,7 +134,6 @@ function renderColumn(source, rows, ms) {
 function clearColumn(source) {
   columnEls[source].meta.innerHTML = "";
   columnEls[source].list.innerHTML = "";
-  columnEls[source].fields.innerHTML = "";
   columnEls[source].json.innerHTML = "";
   columnRows[source] = [];
   columnDetail[source] = null;
@@ -212,7 +209,8 @@ modeRadios.forEach((radio) => {
 
 function showColumnDetail(source, row) {
   columnDetail[source] = row;
-  columnEls[source].fields.innerHTML = renderNormalizedFields(row.normalized);
+  // Only show raw JSON for search results, not parsed fields (which aren't authoritative).
+  // Parsed fields from search are just for debugging — the real fields come from lookup responses.
   columnEls[source].json.innerHTML = renderJson(row.raw);
 }
 
@@ -228,8 +226,10 @@ function handleRowClick(source, index) {
     return;
   }
 
+  // Show search result's raw JSON (for debugging), then immediately fetch lookup for comparison.
   showColumnDetail(source, row);
 
+  // Trigger lookup: all field comparisons are based on lookup responses, not search responses.
   if (row.id) {
     runLookupBoth(row.id, row.kind);
   }

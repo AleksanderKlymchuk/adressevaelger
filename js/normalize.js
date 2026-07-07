@@ -52,6 +52,10 @@ function composeText({ road, houseNo, floor, door, postcode, city }) {
   return [line1, line2].filter(Boolean).join(", ");
 }
 
+// IMPORTANT: This normalizes autocomplete search results. The parsed fields are NOT authoritative
+// and should NEVER be used for comparison. They are only for display purposes (showing result titles).
+// All field comparisons must use normalizeAdressevaelgerDetail() instead, which extracts from
+// the authoritative lookup-by-ID response.
 export function normalizeAdressevaelgerSearchItem(item) {
   const parsed = parseTitel(item && item.titel);
 
@@ -111,6 +115,10 @@ export function normalizeAdressevaelgerDetail(obj) {
   };
 }
 
+// IMPORTANT: This normalizes autocomplete search results. The extracted fields are NOT authoritative
+// and should NEVER be used for comparison. They are only for display purposes.
+// All field comparisons must use normalizeDawaDetail() instead, which extracts from
+// the authoritative lookup-by-ID response.
 export function normalizeDawaSearchItem(item, kind) {
   const nestedKey = kind === "husnummer" ? "adgangsadresse" : "adresse";
   const nested = item && item[nestedKey];
