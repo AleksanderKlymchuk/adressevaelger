@@ -74,19 +74,48 @@ export function normalizeAdressevaelgerSearchItem(item) {
 }
 
 export function normalizeAdressevaelgerDetail(obj) {
+  // Extract from actual Adressevælger lookup response structure (authoritative)
   let road = pick(obj, [
-    "navngivenvej.navn",
-    "adgangsadresse.navngivenvej.navn",
-    "navngivenvejpostnummer.navngivenvej.navn",
-    "vejnavn",
+    "vejnavn",                                    // Direct field in lookup
+    "navngivenvej.navn",                          // Fallback path 1
+    "adgangsadresse.navngivenvej.navn",          // Fallback path 2
+    "navngivenvejpostnummer.navngivenvej.navn",  // Fallback path 3
   ]);
-  let houseNo = pick(obj, ["husnummer", "husnr", "adgangsadresse.husnummer", "adgangsadresse.husnr"]);
+
+  let houseNo = pick(obj, [
+    "husnummertekst",                            // Direct field in lookup
+    "husnummer",                                  // Fallback field
+    "husnr",                                      // Fallback field
+    "adgangsadresse.husnummer",                  // Fallback path
+    "adgangsadresse.husnr",                      // Fallback path
+  ]);
+
   let floor = pick(obj, ["etage", "adresse.etage"]);
   let door = pick(obj, ["dør", "dor", "adresse.dør", "adresse.dor"]);
-  let postcode = pick(obj, ["postnummer.nr", "navngivenvejpostnummer.postnummer.nr", "postnr"]);
-  let city = pick(obj, ["postnummer.navn", "navngivenvejpostnummer.postnummer.navn", "postnrnavn"]);
-  const fallbackText = pick(obj, ["adressebetegnelse", "formateretadresse", "betegnelse"]);
 
+  let postcode = pick(obj, [
+    "postnummer",                                 // Direct field in lookup (not nested)
+    "postnummer.nr",                             // Fallback nested path
+    "navngivenvejpostnummer.postnummer.nr",      // Fallback path
+    "postnr",                                     // Fallback field
+  ]);
+
+  let city = pick(obj, [
+    "postdistrikt",                              // Direct field in lookup
+    "postnummer.navn",                           // Fallback nested path
+    "navngivenvejpostnummer.postnummer.navn",    // Fallback path
+    "postnrnavn",                                 // Fallback field
+  ]);
+
+  // Authoritative text field from lookup response
+  const fallbackText = pick(obj, [
+    "adgangsadressebetegnelse",                  // Direct field in lookup
+    "adressebetegnelse",                         // Fallback field
+    "formateretadresse",                         // Fallback field
+    "betegnelse",                                 // Fallback field
+  ]);
+
+  // Only parse from text if we couldn't extract fields directly (indicates different API structure)
   if (!road && fallbackText) {
     const parsed = parseTitel(fallbackText);
     if (parsed) {
@@ -101,17 +130,23 @@ export function normalizeAdressevaelgerDetail(obj) {
 
   const text = fallbackText || composeText({ road, houseNo, floor, door, postcode, city });
 
+  // Extract ID from actual field in lookup response
+  const id = pick(obj, [
+    "id_lokalid",                                // Direct field in lookup
+    "id",                                         // Fallback field
+  ]);
+
   return {
     source: "adressevaelger",
     text,
-    id: (obj && obj.id) || null,
+    id,
     road,
     houseNo,
     floor,
     door,
     postcode,
     city,
-    confidence: road || postcode ? "parsed" : "unknown",
+    confidence: road || postcode ? "lookup" : "unknown",
   };
 }
 
