@@ -1,27 +1,42 @@
-# Adressevælger test
+# Adressevælger vs. DAWA
 
-A small static test page for the [Adressevælger](https://github.com/Klimadatastyrelsen/adressevaelger) UI component from Klimadatastyrelsen / SDFI. It lets you switch between full address search and house-number-only search, shows the object returned on selection, and performs a follow-up "extended lookup" call against the `adressevaelger.dk` API for the selected id. It also has an opt-in switch to compare results against the older DAWA autocomplete API (`dawa.aws.dk`), which Adressevælger is meant to replace.
+A static, side-by-side comparison tool between two Danish address-lookup APIs:
 
-Pure HTML/CSS/JS, no build step, no dependencies beyond the component's own `dist/` bundle.
+- **Adressevælger** (`adressevaelger.dk`) — the newer API from Klimadatastyrelsen/SDFI.
+- **DAWA** (`dawa.aws.dk`) — the older Danmarks Adressers Web API that Adressevælger is meant to replace.
+
+Type an address and both APIs are queried at the same time; results, timing, and raw responses show up side by side. Click any result to run an ID lookup against both APIs and see a field-by-field diff. Pure HTML/CSS/JS, no build step, no framework, no backend.
 
 ## Files
 
-- `index.html` — page markup: title, mode radio buttons, search container, result panels.
-- `app.js` — initializes/reinitializes the component on mode change, handles selection, and calls the extended lookup endpoint.
-- `styles.css` — page styling (mobile-friendly).
-- `adressevaelger.css` / `adressevaelger.iife.js` — copied unmodified from the [Adressevælger `dist/` folder](https://github.com/Klimadatastyrelsen/adressevaelger/tree/main/dist).
+- `index.html` — page markup: mode selector, search input, the two-column live-search comparison, the ID-lookup section, and the developer/debug log.
+- `styles.css` — all styling (mobile-friendly).
+- `js/config.js` — API base URLs, token, debounce timing, debug log size.
+- `js/http.js` — a single instrumented `fetch()` wrapper (`timedFetch`) used by every API call, returning `{ok, status, ms, url, json, error}` and never throwing.
+- `js/api-adressevaelger.js` / `js/api-dawa.js` — search and ID-lookup functions for each API.
+- `js/normalize.js` — maps each API's raw response into a common `{text, id, road, houseNo, floor, door, postcode, city, confidence}` shape.
+- `js/diff.js` — field-level diff and a shallow top-level-key-set comparison between the two APIs' lookup results.
+- `js/render.js` — HTML rendering helpers, including a hand-rolled JSON syntax highlighter and the copy-to-clipboard button logic.
+- `js/debug-log.js` — a capped (20-entry) log of every API call made, feeding the developer/debug section.
+- `js/app.js` — wires everything together: debounced dual search with per-column abort/race handling, click-to-lookup routing, manual ID lookup, diff rendering.
 
-## Token
+`js/*.js` are loaded as native ES modules (`<script type="module">`) — no bundler, no build step, and GitHub Pages serves them as-is.
 
-The page uses the example/placeholder token `adressevaelger123` (the same value used in the component's own quick-start docs). Replace it in `app.js` with a real token if you have one — see the [Adressevælger implementation guide](https://github.com/Klimadatastyrelsen/adressevaelger/blob/main/GUIDE.md) for how to obtain one. Without a valid token, searches and lookups against `adressevaelger.dk` will fail (and the page will show the resulting error).
+## Important caveats on field mapping
 
-## DAWA comparison
+Neither API's exact response shape was verified against a live call while building this (the sandbox this was built in blocks both `adressevaelger.dk` and `dawa.aws.dk`), so:
 
-The "Sammenlign med DAWA (legacy API)" switch queries the legacy `https://dawa.aws.dk/autocomplete` endpoint with the same address text and mode, for a side-by-side sanity check against Adressevælger's own results. It's off by default; enable it before or after making a selection. The DAWA response field used for display (`tekst`) follows DAWA's documented autocomplete convention — this wasn't verified against a live call while developing this feature (the network the app was built in blocked `dawa.aws.dk`), so if the rendered rows ever look wrong, check the actual response shape from a real browser and adjust `renderDawaResults()` in `app.js` accordingly.
+- **Adressevælger search results** only ever expose `id`, `type`, and a flat `titel` display string — there are no decomposed road/house-number/floor/door/postcode/city fields at the search level. The road/house-number/etc. columns for Adressevælger search rows are **parsed from `titel` with a regex**, not authoritative — the raw `titel` is always shown too.
+- **Adressevælger ID-lookup results** return a real but undocumented object (a Danish DAR-registry-style nested structure). `js/normalize.js` tries several plausible field paths defensively and falls back gracefully; it may need adjusting once checked against a real response.
+- **DAWA's** shape follows its long-documented convention but also wasn't live-verified here — treated with the same "parsed, not authoritative" caveat rather than assumed correct.
+- The token used (`adressevaelger123`) is the placeholder value from Adressevælger's own quick-start docs. Get a real token via the [implementation guide](https://github.com/Klimadatastyrelsen/adressevaelger/blob/main/GUIDE.md) if needed.
+- DAWA (`dawa.aws.dk`) has a planned shutdown (currently dated ~17 August 2026) in favor of newer Danish address APIs — expect this tool to eventually need a new DAWA-side endpoint.
+
+**Nothing is hidden**: every column always shows the full raw JSON response regardless of how well (or badly) the normalized fields parsed.
 
 ## Running locally
 
-Because the page uses `fetch()`, serve it over HTTP rather than opening `index.html` directly via `file://`. Any static file server works, for example:
+The page uses `fetch()` and ES modules, both of which require serving over HTTP rather than opening `index.html` directly via `file://`. Any static file server works:
 
 ```sh
 python3 -m http.server 8080

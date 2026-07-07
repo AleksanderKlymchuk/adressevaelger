@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Adressevælger</title>
-    <link rel="stylesheet" href="adressevaelger.css" />
+    <title>Adressevælger vs. DAWA</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="page">
       <main class="card">
-        <h1>Adressevælger</h1>
+        <h1>Adressevælger vs. DAWA</h1>
+        <p class="intro">Sammenligner Adressevælger- og DAWA-API'erne side om side: søgeforslag, svartid, antal resultater og fulde rå svar.</p>
 
         <fieldset id="mode-select">
           <legend>Vælg opslagstype</legend>
@@ -20,10 +20,6 @@
             <span class="mode-option-body">
               <span class="mode-option-title">🏠 House Number (Adgangsadresse)</span>
               <span class="mode-option-desc">Searches for a physical building/entrance.</span>
-              <span class="mode-option-examples"
-                >Examples:<br />Ankjær 205, 8300 Odder<br />Taastrup Have 30,
-                2630 Taastrup</span
-              >
             </span>
           </label>
 
@@ -31,83 +27,93 @@
             <input type="radio" name="mode" value="adresse" checked />
             <span class="mode-option-body">
               <span class="mode-option-title">🏢 Address (Adresse)</span>
-              <span class="mode-option-desc"
-                >Searches for a specific address, including floor and
-                door.</span
-              >
-              <span class="mode-option-examples"
-                >Examples:<br />Taastrup Have 30, 1. mf., 2630
-                Taastrup<br />Taastrup Have 30, st. tv., 2630 Taastrup</span
-              >
+              <span class="mode-option-desc">Searches for a specific address, including floor and door.</span>
             </span>
           </label>
         </fieldset>
 
-        <div class="info-box">
-          <div class="info-box-col">
-            <h3>House Number (Adgangsadresse)</h3>
-            <ul>
-              <li>Returns one physical entrance/building.</li>
-              <li>Can contain multiple addresses.</li>
-            </ul>
-          </div>
-          <div class="info-box-col">
-            <h3>Address (Adresse)</h3>
-            <ul>
-              <li>Returns one specific address.</li>
-              <li>Includes floor and door when applicable.</li>
-            </ul>
-          </div>
-        </div>
-
         <div class="field">
-          <label for="adressevaelger-input">Søg</label>
-          <div id="search-container"></div>
+          <label for="search-input">Søg</label>
+          <input type="search" id="search-input" placeholder="Søg efter adresse…" />
         </div>
 
-        <div class="dawa-toggle-row">
-          <label class="switch">
-            <input type="checkbox" id="dawa-toggle" />
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-          </label>
-          <span>Sammenlign med DAWA (legacy API)</span>
-        </div>
+        <section class="compare-grid">
+          <div class="compare-col" data-source="adressevaelger">
+            <h2>Adressevælger</h2>
+            <div id="compare-av-meta"></div>
+            <ul id="compare-av-list" class="result-list"></ul>
+            <div id="compare-av-fields"></div>
+            <div class="detail-actions">
+              <button type="button" id="compare-av-copy-json" class="copy-btn">Kopiér JSON</button>
+              <button type="button" id="compare-av-copy-url" class="copy-btn">Kopiér URL</button>
+            </div>
+            <pre id="compare-av-json" class="json-block"></pre>
+          </div>
 
-        <section id="result-section" hidden>
-          <h2>Valgt <span id="result-badge" class="mode-badge"></span></h2>
-          <div class="field selected-id-row">
-            <label for="selected-id">ID</label>
-            <div class="input-with-button">
-              <input type="text" id="selected-id" readonly />
-              <button type="button" id="copy-id-btn">Kopiér</button>
+          <div class="compare-col" data-source="dawa">
+            <h2>DAWA</h2>
+            <div id="compare-dawa-meta"></div>
+            <ul id="compare-dawa-list" class="result-list"></ul>
+            <div id="compare-dawa-fields"></div>
+            <div class="detail-actions">
+              <button type="button" id="compare-dawa-copy-json" class="copy-btn">Kopiér JSON</button>
+              <button type="button" id="compare-dawa-copy-url" class="copy-btn">Kopiér URL</button>
+            </div>
+            <pre id="compare-dawa-json" class="json-block"></pre>
+          </div>
+        </section>
+
+        <section id="lookup-section" hidden>
+          <h2>ID-opslag sammenligning</h2>
+
+          <div class="lookup-form">
+            <div class="field">
+              <label for="lookup-id-input">ID</label>
+              <input type="text" id="lookup-id-input" placeholder="Indsæt adresse-id…" />
+            </div>
+            <fieldset class="lookup-kind">
+              <label><input type="radio" name="lookup-kind" value="adresse" checked /> Adresse</label>
+              <label><input type="radio" name="lookup-kind" value="husnummer" /> Husnummer</label>
+            </fieldset>
+            <button type="button" id="lookup-btn">Slå ID op</button>
+          </div>
+
+          <div class="compare-grid">
+            <div class="compare-col" data-source="adressevaelger">
+              <h3>Adressevælger</h3>
+              <div id="lookup-av-meta"></div>
+              <div id="lookup-av-fields"></div>
+              <div class="detail-actions">
+                <button type="button" id="lookup-av-copy-json" class="copy-btn">Kopiér JSON</button>
+                <button type="button" id="lookup-av-copy-url" class="copy-btn">Kopiér URL</button>
+              </div>
+              <pre id="lookup-av-json" class="json-block"></pre>
+            </div>
+
+            <div class="compare-col" data-source="dawa">
+              <h3>DAWA</h3>
+              <div id="lookup-dawa-meta"></div>
+              <div id="lookup-dawa-fields"></div>
+              <div class="detail-actions">
+                <button type="button" id="lookup-dawa-copy-json" class="copy-btn">Kopiér JSON</button>
+                <button type="button" id="lookup-dawa-copy-url" class="copy-btn">Kopiér URL</button>
+              </div>
+              <pre id="lookup-dawa-json" class="json-block"></pre>
             </div>
           </div>
-          <p id="multi-address-note" class="status status-info" hidden></p>
-          <pre id="selected-json" class="json-block"></pre>
+
+          <div id="diff-container" class="diff-container"></div>
         </section>
 
-        <section id="extended-section" hidden>
-          <h2>Udvidet opslag</h2>
-          <p id="loading" class="status status-loading" hidden>
-            <span class="spinner" aria-hidden="true"></span>Henter data…
-          </p>
-          <p id="error" class="status status-error" hidden></p>
-          <pre id="extended-json" class="json-block"></pre>
-        </section>
-
-        <section id="dawa-section" hidden>
-          <h2>DAWA (sammenligning)</h2>
-          <p class="dawa-caption">Sammenligner med den ældre DAWA autocomplete-API.</p>
-          <p id="dawa-loading" class="status status-loading" hidden>
-            <span class="spinner" aria-hidden="true"></span>Henter data…
-          </p>
-          <p id="dawa-error" class="status status-error" hidden></p>
-          <ul id="dawa-results" class="dawa-list"></ul>
+        <section id="debug-section">
+          <details>
+            <summary>Udviklerlog (seneste 20 kald)</summary>
+            <ul id="debug-log-list" class="debug-log-list"></ul>
+          </details>
         </section>
       </main>
     </div>
 
-    <script src="adressevaelger.iife.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>
