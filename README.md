@@ -1,6 +1,6 @@
 # Adressevælger test
 
-A small static test page for the [Adressevælger](https://github.com/Klimadatastyrelsen/adressevaelger) UI component from Klimadatastyrelsen / SDFI. It lets you switch between full address search and house-number-only search, shows the object returned on selection, and performs a follow-up "extended lookup" call against the `adressevaelger.dk` API for the selected id.
+A small static test page for the [Adressevælger](https://github.com/Klimadatastyrelsen/adressevaelger) UI component from Klimadatastyrelsen / SDFI. It lets you switch between full address search and house-number-only search, shows the object returned on selection, and performs a follow-up "extended lookup" call against the `adressevaelger.dk` API for the selected id. It also has an opt-in switch to compare results against the older DAWA autocomplete API (`dawa.aws.dk`), which Adressevælger is meant to replace.
 
 Pure HTML/CSS/JS, no build step, no dependencies beyond the component's own `dist/` bundle.
 
@@ -14,6 +14,10 @@ Pure HTML/CSS/JS, no build step, no dependencies beyond the component's own `dis
 ## Token
 
 The page uses the example/placeholder token `adressevaelger123` (the same value used in the component's own quick-start docs). Replace it in `app.js` with a real token if you have one — see the [Adressevælger implementation guide](https://github.com/Klimadatastyrelsen/adressevaelger/blob/main/GUIDE.md) for how to obtain one. Without a valid token, searches and lookups against `adressevaelger.dk` will fail (and the page will show the resulting error).
+
+## DAWA comparison
+
+The "Sammenlign med DAWA (legacy API)" switch queries the legacy `https://dawa.aws.dk/autocomplete` endpoint with the same address text and mode, for a side-by-side sanity check against Adressevælger's own results. It's off by default; enable it before or after making a selection. The DAWA response field used for display (`tekst`) follows DAWA's documented autocomplete convention — this wasn't verified against a live call while developing this feature (the network the app was built in blocked `dawa.aws.dk`), so if the rendered rows ever look wrong, check the actual response shape from a real browser and adjust `renderDawaResults()` in `app.js` accordingly.
 
 ## Running locally
 
