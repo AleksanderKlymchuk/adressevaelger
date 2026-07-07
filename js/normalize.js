@@ -75,33 +75,49 @@ export function normalizeAdressevaelgerSearchItem(item) {
 
 export function normalizeAdressevaelgerDetail(obj) {
   // Extract from actual Adressevælger lookup response structure (authoritative)
+  // Response is wrapped: { status, adresse: { id_lokalid, adressebetegnelse, husnummer: { ... } } }
   let road = pick(obj, [
-    "vejnavn",                                    // Direct field in lookup
-    "navngivenvej.navn",                          // Fallback path 1
-    "adgangsadresse.navngivenvej.navn",          // Fallback path 2
-    "navngivenvejpostnummer.navngivenvej.navn",  // Fallback path 3
+    "adresse.husnummer.vejnavn",                  // Primary path in actual API response
+    "vejnavn",                                    // Direct field (if API structure varies)
+    "navngivenvej.navn",                          // Fallback path
+    "adgangsadresse.navngivenvej.navn",          // Fallback path
+    "navngivenvejpostnummer.navngivenvej.navn",  // Fallback path
   ]);
 
   let houseNo = pick(obj, [
-    "husnummertekst",                            // Direct field in lookup
+    "adresse.husnummer.husnummertekst",          // Primary path in actual API response
+    "husnummertekst",                            // Direct field (if API structure varies)
     "husnummer",                                  // Fallback field
     "husnr",                                      // Fallback field
     "adgangsadresse.husnummer",                  // Fallback path
     "adgangsadresse.husnr",                      // Fallback path
   ]);
 
-  let floor = pick(obj, ["etage", "adresse.etage"]);
-  let door = pick(obj, ["dør", "dor", "adresse.dør", "adresse.dor"]);
+  let floor = pick(obj, [
+    "adresse.etagebetegnelse",                   // Primary path in actual API response
+    "etage",                                      // Fallback field
+    "adresse.etage",                             // Fallback path
+  ]);
+
+  let door = pick(obj, [
+    "adresse.doerbetegnelse",                    // Primary path in actual API response
+    "dør",                                        // Fallback field
+    "dor",                                        // Fallback field
+    "adresse.dør",                               // Fallback path
+    "adresse.dor",                               // Fallback path
+  ]);
 
   let postcode = pick(obj, [
-    "postnummer",                                 // Direct field in lookup (not nested)
+    "adresse.husnummer.postnummer.postnr",       // Primary path in actual API response
+    "postnummer",                                 // Direct field (if API structure varies)
     "postnummer.nr",                             // Fallback nested path
     "navngivenvejpostnummer.postnummer.nr",      // Fallback path
     "postnr",                                     // Fallback field
   ]);
 
   let city = pick(obj, [
-    "postdistrikt",                              // Direct field in lookup
+    "adresse.husnummer.postnummer.navn",         // Primary path in actual API response
+    "postdistrikt",                              // Direct field (if API structure varies)
     "postnummer.navn",                           // Fallback nested path
     "navngivenvejpostnummer.postnummer.navn",    // Fallback path
     "postnrnavn",                                 // Fallback field
@@ -109,7 +125,8 @@ export function normalizeAdressevaelgerDetail(obj) {
 
   // Authoritative text field from lookup response
   const fallbackText = pick(obj, [
-    "adgangsadressebetegnelse",                  // Direct field in lookup
+    "adresse.adressebetegnelse",                 // Primary path in actual API response
+    "adgangsadressebetegnelse",                  // Fallback field
     "adressebetegnelse",                         // Fallback field
     "formateretadresse",                         // Fallback field
     "betegnelse",                                 // Fallback field
@@ -132,7 +149,8 @@ export function normalizeAdressevaelgerDetail(obj) {
 
   // Extract ID from actual field in lookup response
   const id = pick(obj, [
-    "id_lokalid",                                // Direct field in lookup
+    "adresse.id_lokalid",                        // Primary path in actual API response
+    "id_lokalid",                                // Direct field (if API structure varies)
     "id",                                         // Fallback field
   ]);
 
