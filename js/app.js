@@ -312,6 +312,9 @@ function renderDiff() {
     return;
   }
 
+  // IMPORTANT: Field comparison uses lookup responses only (a.normalized, b.normalized).
+  // These are normalized from the authoritative detail endpoints, not from autocomplete.
+  // diffNormalizedFields compares field-by-field from lookup-normalized data.
   const fieldDiff = diffNormalizedFields(a.normalized, b.normalized);
   const keyDiff = diffTopLevelKeys(a.data, b.data);
   lookupEls.diff.innerHTML = renderDiffTable(fieldDiff) + renderKeyDiffBadges(keyDiff);

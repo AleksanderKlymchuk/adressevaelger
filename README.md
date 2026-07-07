@@ -5,7 +5,16 @@ A static, side-by-side comparison tool between two Danish address-lookup APIs:
 - **Adressevælger** (`adressevaelger.dk`) — the newer API from Klimadatastyrelsen/SDFI.
 - **DAWA** (`dawa.aws.dk`) — the older Danmarks Adressers Web API that Adressevælger is meant to replace.
 
-Type an address and both APIs are queried at the same time; results, timing, and raw responses show up side by side. Click any result to run an ID lookup against both APIs and see a field-by-field diff. Pure HTML/CSS/JS, no build step, no framework, no backend.
+## Comparison Flow
+
+1. **Autocomplete search** — Type an address to search both APIs' autocomplete endpoints. Results show the title/text only (raw response JSON visible for debugging).
+2. **ID lookup** — Click a search result to retrieve the full address record from both APIs' lookup endpoints.
+3. **Field comparison** — Once both lookup responses arrive, a side-by-side diff shows all address fields with differences highlighted.
+4. **Manual lookup** — Alternatively, enter an address ID directly and skip the search step.
+
+**Important architectural note:** Field comparisons are **always based on lookup-by-ID responses**, never on autocomplete responses. Autocomplete endpoints return limited data (Adressevælger returns only `id`, `type`, `titel`); the authoritative, complete field values come from the lookup endpoints. Raw autocomplete JSON remains visible for debugging only.
+
+Pure HTML/CSS/JS, no build step, no framework, no backend.
 
 ## Files
 
@@ -26,13 +35,12 @@ Type an address and both APIs are queried at the same time; results, timing, and
 
 Neither API's exact response shape was verified against a live call while building this (the sandbox this was built in blocks both `adressevaelger.dk` and `dawa.aws.dk`), so:
 
-- **Adressevælger search results** only ever expose `id`, `type`, and a flat `titel` display string — there are no decomposed road/house-number/floor/door/postcode/city fields at the search level. The road/house-number/etc. columns for Adressevælger search rows are **parsed from `titel` with a regex**, not authoritative — the raw `titel` is always shown too.
-- **Adressevælger ID-lookup results** return a real but undocumented object (a Danish DAR-registry-style nested structure). `js/normalize.js` tries several plausible field paths defensively and falls back gracefully; it may need adjusting once checked against a real response.
-- **DAWA's** shape follows its long-documented convention but also wasn't live-verified here — treated with the same "parsed, not authoritative" caveat rather than assumed correct.
+- **Autocomplete responses** return limited field data. Adressevælger autocomplete only returns `id`, `type`, and a flat `titel` display string. DAWA autocomplete returns partial nested structures. **These autocomplete fields are NOT used for comparison** — they are display-only and may be incomplete.
+- **Lookup-by-ID responses** (the authoritative source) return the complete address record. For Adressevælger, this is a deeply nested DAR-registry-style object; for DAWA, it follows the documented address structure. The field normalization in `js/normalize.js` tries several plausible key paths defensively and falls back gracefully. **These fields may need adjusting once checked against real responses**, but they are the only source used for field comparison.
 - The token used (`adressevaelger123`) is the placeholder value from Adressevælger's own quick-start docs. Get a real token via the [implementation guide](https://github.com/Klimadatastyrelsen/adressevaelger/blob/main/GUIDE.md) if needed.
 - DAWA (`dawa.aws.dk`) has a planned shutdown (currently dated ~17 August 2026) in favor of newer Danish address APIs — expect this tool to eventually need a new DAWA-side endpoint.
 
-**Nothing is hidden**: every column always shows the full raw JSON response regardless of how well (or badly) the normalized fields parsed.
+**Nothing is hidden**: every response (both autocomplete and lookup) shows the full raw JSON for debugging and verification.
 
 ## Running locally
 
