@@ -65,6 +65,14 @@
           <div id="search-container"></div>
         </div>
 
+        <div class="dawa-toggle-row">
+          <label class="switch">
+            <input type="checkbox" id="dawa-toggle" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+          <span>Sammenlign med DAWA (legacy API)</span>
+        </div>
+
         <section id="result-section" hidden>
           <h2>Valgt <span id="result-badge" class="mode-badge"></span></h2>
           <div class="field selected-id-row">
@@ -85,6 +93,16 @@
           </p>
           <p id="error" class="status status-error" hidden></p>
           <pre id="extended-json" class="json-block"></pre>
+        </section>
+
+        <section id="dawa-section" hidden>
+          <h2>DAWA (sammenligning)</h2>
+          <p class="dawa-caption">Sammenligner med den ældre DAWA autocomplete-API.</p>
+          <p id="dawa-loading" class="status status-loading" hidden>
+            <span class="spinner" aria-hidden="true"></span>Henter data…
+          </p>
+          <p id="dawa-error" class="status status-error" hidden></p>
+          <ul id="dawa-results" class="dawa-list"></ul>
         </section>
       </main>
     </div>

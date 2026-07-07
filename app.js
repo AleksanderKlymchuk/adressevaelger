@@ -11,8 +11,15 @@ const extendedSection = document.getElementById("extended-section");
 const loadingEl = document.getElementById("loading");
 const errorEl = document.getElementById("error");
 const extendedJsonEl = document.getElementById("extended-json");
+const dawaToggle = document.getElementById("dawa-toggle");
+const dawaSection = document.getElementById("dawa-section");
+const dawaLoadingEl = document.getElementById("dawa-loading");
+const dawaErrorEl = document.getElementById("dawa-error");
+const dawaResultsEl = document.getElementById("dawa-results");
 
 let currentMode = "adresse";
+let currentInput = null;
+let dawaEnabled = false;
 
 function initComponent(mode) {
   searchContainer.innerHTML = "";
@@ -28,6 +35,7 @@ function initComponent(mode) {
 
   wrapper.appendChild(input);
   searchContainer.appendChild(wrapper);
+  currentInput = input;
 
   window.adressevaelger.adressevaelger(input, {
     token: TOKEN,
@@ -48,6 +56,15 @@ function clearResults() {
   extendedJsonEl.innerHTML = "";
   setLoading(false);
   clearError();
+  clearDawaResults();
+}
+
+function clearDawaResults() {
+  dawaSection.hidden = true;
+  dawaResultsEl.innerHTML = "";
+  dawaLoadingEl.hidden = true;
+  dawaErrorEl.hidden = true;
+  dawaErrorEl.textContent = "";
 }
 
 function setLoading(isLoading) {
@@ -107,6 +124,10 @@ function handleSelect(selected) {
   if (selected && selected.id) {
     fetchExtended(currentMode, selected.id);
   }
+
+  if (dawaEnabled && currentInput && currentInput.value) {
+    fetchDawaComparison(currentMode, currentInput.value);
+  }
 }
 
 async function fetchExtended(mode, id) {
@@ -140,6 +161,67 @@ async function fetchExtended(mode, id) {
     setLoading(false);
   }
 }
+
+async function fetchDawaComparison(mode, queryText) {
+  if (!queryText) {
+    return;
+  }
+
+  const dawaType = mode === "husnummer" ? "adgangsadresse" : "adresse";
+  const url = `https://dawa.aws.dk/autocomplete?type=${dawaType}&fuzzy&per_side=5&q=${encodeURIComponent(
+    queryText
+  )}`;
+
+  dawaSection.hidden = false;
+  dawaResultsEl.innerHTML = "";
+  dawaErrorEl.hidden = true;
+  dawaErrorEl.textContent = "";
+  dawaLoadingEl.hidden = false;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP fejl ${response.status}`);
+    }
+    const data = await response.json();
+    renderDawaResults(data);
+  } catch (err) {
+    dawaErrorEl.textContent = `Kunne ikke hente DAWA-sammenligning: ${err.message}`;
+    dawaErrorEl.hidden = false;
+  } finally {
+    dawaLoadingEl.hidden = true;
+  }
+}
+
+function renderDawaResults(items) {
+  dawaResultsEl.innerHTML = "";
+
+  if (!Array.isArray(items) || items.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Ingen resultater fra DAWA.";
+    dawaResultsEl.appendChild(li);
+    return;
+  }
+
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item && item.tekst ? item.tekst : JSON.stringify(item);
+    dawaResultsEl.appendChild(li);
+  });
+}
+
+dawaToggle.addEventListener("change", (event) => {
+  dawaEnabled = event.target.checked;
+
+  if (!dawaEnabled) {
+    clearDawaResults();
+    return;
+  }
+
+  if (!resultSection.hidden && currentInput && currentInput.value) {
+    fetchDawaComparison(currentMode, currentInput.value);
+  }
+});
 
 copyIdBtn.addEventListener("click", async () => {
   if (!selectedIdEl.value || !navigator.clipboard) {
